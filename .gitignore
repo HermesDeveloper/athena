@@ -18,5 +18,7 @@ venv/
 # OS
 .DS_Store
 Thumbs.db
+
+*.bat
 =======
 >>>>>>> 420e6fd2658973bab1143276e869fdf24796aa29
