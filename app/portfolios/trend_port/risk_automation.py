@@ -74,43 +74,61 @@ def update_peak_equity(equity):
 # ======================================
 
 def intraday_risk_check():
+    try:
+        account = get_account()
+        if account is None:
+            print("[RISK] Cannot fetch account")
+            return
 
-    account = get_account()
-    equity = float(account.equity)
+        equity = float(account.equity)
 
-    peak = get_peak_equity()
+        peak = get_peak_equity()
 
-    # ถ้ายังไม่มี peak หรือทำ new high
-    if peak is None or equity > peak:
-        update_peak_equity(equity)
-        print("📈 New peak equity:", equity)
-        return
+        # ถ้ายังไม่มี peak หรือทำ new high
+        if peak is None or equity > peak:
+            update_peak_equity(equity)
+            print("📈 New peak equity:", equity)
+            return
 
-    drawdown = (peak - equity) / peak
+        if peak == 0:
+            print("[RISK] Peak equity is zero")
+            return
 
-    print(f"🔎 Portfolio Drawdown: {drawdown:.2%}")
+        drawdown = (peak - equity) / peak
 
-    reduce_ratio = None
+        print(f"🔎 Portfolio Drawdown: {drawdown:.2%}")
 
-    if drawdown >= DD_LEVEL_4:
-        reduce_ratio = REDUCE_L4
-    elif drawdown >= DD_LEVEL_3:
-        reduce_ratio = REDUCE_L3
-    elif drawdown >= DD_LEVEL_2:
-        reduce_ratio = REDUCE_L2
-    elif drawdown >= DD_LEVEL_1:
-        reduce_ratio = REDUCE_L1
+        reduce_ratio = None
 
-    if reduce_ratio is None:
-        return
+        if drawdown >= DD_LEVEL_4:
+            reduce_ratio = REDUCE_L4
+        elif drawdown >= DD_LEVEL_3:
+            reduce_ratio = REDUCE_L3
+        elif drawdown >= DD_LEVEL_2:
+            reduce_ratio = REDUCE_L2
+        elif drawdown >= DD_LEVEL_1:
+            reduce_ratio = REDUCE_L1
 
-    print(f"⚠ Risk Triggered → Reduce {int(reduce_ratio * 100)}%")
+        if reduce_ratio is None:
+            return
 
-    positions = get_positions()
+        print(f"⚠ Risk Triggered → Reduce {int(reduce_ratio * 100)}%")
 
-    for p in positions:
-        qty = int(float(p.qty))
-        reduce_qty = int(qty * reduce_ratio)
+        positions = get_positions()
+        if not positions:
+            print("[RISK] No positions found")
+            return
 
-        if reduce_qty > 0:
-            submit_market(p.symbol, reduce_qty, "SELL")
+        for p in positions:
+            try:
+                qty = int(float(p.qty))
+                reduce_qty = int(qty * reduce_ratio)
+
+                if reduce_qty > 0:
+                    submit_market(p.symbol, reduce_qty, "SELL")
+                    print(f"SELL {p.symbol} {reduce_qty}")
+            except Exception as order_err:
+                print(f"[ORDER ERROR] {p.symbol} → {order_err}")
+
+    except Exception as e:
+        print(f"[RISK ERROR] {e}")
