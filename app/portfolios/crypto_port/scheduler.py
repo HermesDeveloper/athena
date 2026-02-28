@@ -1,19 +1,25 @@
-
 import time
 import os
+import platform
 from datetime import datetime
 
 from portfolios.crypto_port.data.fetch_binance import fetch_and_store
 from portfolios.crypto_port.main import run_cycle
 
 
-def run():
+def clear_screen():
+    if platform.system() == "Windows":
+        os.system("cls")
+    else:
+        os.system("clear")
 
+
+def run():
     print("=== Athena Crypto Engine Started ===")
 
     while True:
         try:
-            os.system("cls")  # clear screen (Windows)
+            clear_screen()
 
             print("===================================")
             print("Time:", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
