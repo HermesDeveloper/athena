@@ -43,3 +43,5 @@ def rebalance_portfolio(btc_price, core_btc, trading_btc, cash):
         "core_btc_diff": core_diff / btc_price,
         "trading_btc_diff": trading_diff / btc_price
     }
+
+    
